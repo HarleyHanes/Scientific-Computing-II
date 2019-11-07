@@ -7,11 +7,11 @@ iter=1;
 lambda=q'*A*q;
 while 1
     %q=LowerSolve(L,UpperSolve(U,q));
-    q=UpperSolve(U,LowerSolve(L,q));
-    %q=linsolve(U,linsolve(L,q));
+    %q=UpperSolve(U,LowerSolve(L,q));
+    q=linsolve(U,linsolve(L,q));
     q=q/norm(q);
     lambda(iter+1)=q'*A*q;
-    err=norm(lambda(iter+1)-lambda(iter));
+    err=abs(lambda(iter+1)-lambda(iter));
         if err <= tol
             if write
                 fprintf("Inverse Power Method Successfully converged to lambda=%.2f%+.2fi\n",lambda(end),imag(lambda(end)))
