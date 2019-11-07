@@ -3,10 +3,7 @@
 clear; close all;clc;
 %% Matrix Creation and Settings
 %Construct A
- A=rand(16);                     %Full Random
-%  A=rand(16)+15*eye(16);          %Diag dominant
-%  A=rand(16); A=A'*A;             %symmetric
-%  A=rand(16)+15*eye(16); A=A'*A;  %SPD
+ A=GetAMatrix('general',15);
 [X,D,Xinv]=eig(A);
 eigA=sort(diag(D));
 RealEig=0;ImagEig=0;
@@ -43,7 +40,6 @@ tol=1e-10;
         %x1=Xinv(1,:)';
         %x1=X(:,1);
         v0=rand(size(A,1),1);
-        v0=v0/norm(v0);
         z0=v0-(v0'*x1)*x1;        %Checked: z0 is orthoginal to x1 at tol=1e-10
         z0=z0/norm(z0);
         [lambda2,x2]=PowerMethod(A,z0,itermax,tol);
@@ -79,7 +75,7 @@ tol=1e-10;
     %% Part c: Find lambda1 and lambda 2 given that they're complex
     %conjugates
     %Get A matrix
-    A=GetImagEigA(15);
+    A=GetAMatrix('ImagEig',15);
     q0=rand(15,1); q0=q0/norm(q0);
     %Use PowerMethod to get guess of the real part
     [RealGuess,~] = PowerMethod(A,q0,10,tol);
@@ -95,3 +91,23 @@ tol=1e-10;
      fprintf("Error in lambda2: %.3e\n",lambdaTrue(end-1)-lambda2(end))
      
 %% Problem 3
+clear;
+SizeVec=10:10:100;
+tol=1e-6; itermax=10000;
+Eig=NaN(3,length(SizeVec));
+for i=1:length(SizeVec)
+    size=SizeVec(i);
+    Asym=GetAMatrix('symmetric',size);
+    ASPD=GetAMatrix('SPD',size);
+    ATri=GetAMatrix('SymTriDiag',size);
+    [eigSym,iterSym]=QRalgorithm(Asym,itermax,tol);
+    [eigSPD,iterSPD]=QRalgorithm(ASPD,itermax,tol);
+    [eigTri,iterTri]=QRalgorithm(ATri,itermax,tol);
+    Eig(:,i)=[iterSym iterSPD iterTri]';
+end
+plot(SizeVec,Eig)
+legend('Symmetric','SPD','Symmetric Tridiagonal')
+
+%Results
+%Only works on symmetric matrices, faster on symmetric than SPD
+
