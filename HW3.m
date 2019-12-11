@@ -94,7 +94,7 @@ semilogx(tolvec,itersave)
 ylabel('Iterations')
 xlabel('Tolerance')
 
-function [x,iter]=SOR(A,b,x0,w,tol,nmax)
+function [x,iter,rnorm]=SOR(A,b,x0,w,tol,nmax)
 [n,~]=size(A);
 iter=0;xold=x0;x=NaN(length(x0),1);
 r=b-A*x0;rnorm=norm(r);

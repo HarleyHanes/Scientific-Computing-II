@@ -93,6 +93,7 @@ itermax=100; tol=1e-8;
             %Check x1 eigenvector
             fprintf("x1 is different from the true eigenvector on the order of %.2e\n",norm(x1-x1True))
         v0=rand(size(A,1),1);
+        x1=x1True;
         z0=v0-(v0'*x1)*x1;        %Checked: z0 is orthoginal to x1 at tol=1e-10
         z0=z0/norm(z0);
             fprintf("z0 is orthoginal to x1 on the order of %.2e\n",z0'*x1)
@@ -185,9 +186,9 @@ for i=1:nsamples
     [eigSym,~]=QRalgorithm(Asym,itermax);
     [eigSPD,~]=QRalgorithm(ASPD,itermax);
     [eigTri,~]=QRalgorithm(ATri,itermax);
-    errSym=sum(abs((sort(eigSym)-sort(eig(Asym)))));
-    errSPD=sum(abs((sort(eigSPD)-sort(eig(ASPD)))));
-    errTri=sum(abs((sort(eigTri)-sort(eig(ATri)))));
+    errSym=sum(abs((sort(eigSym)-sort(eig(Asym)))))/norm(eig(Asym));
+    errSPD=sum(abs((sort(eigSPD)-sort(eig(ASPD)))))/norm(eig(ASPD));
+    errTri=sum(abs((sort(eigTri)-sort(eig(ATri)))))/norm(eig(ATri));
     MeanErr(1,:)=((i-1)*MeanErr(1,:)+errSym)/i;
     MeanErr(2,:)=((i-1)*MeanErr(2,:)+errSPD)/i;
     MeanErr(3,:)=((i-1)*MeanErr(3,:)+errTri)/i;
@@ -197,6 +198,5 @@ semilogy(1:itermax,MeanErr)
  ylabel('||\lambda_{QR}-\lambda_{True}||_1')
  xlabel('Iterations')
 
-%Results
-%Only works on symmetric matrices, faster on symmetric than SPD
+
 

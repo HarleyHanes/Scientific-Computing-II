@@ -6,7 +6,7 @@ B=A-mu*eye(size(A));
 iter=1;
 lambda=q'*A*q;
 while 1
-    %q=LowerSolve(L,UpperSolve(U,q));
+    q=LowerSolve(L,UpperSolve(U,q));
     %q=UpperSolve(U,LowerSolve(L,q));
     q=linsolve(U,linsolve(L,q));
     q=q/norm(q);
