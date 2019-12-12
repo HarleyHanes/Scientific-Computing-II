@@ -1,6 +1,8 @@
 function [beta,cond,tcost,success] = SolveRBFPlanarInterp(Data,basisFunc,reg)
-%UNTITLED11 Summary of this function goes here
-%   Detailed explanation goes here
+%SolveRBFPlanarInterp Outputs the coeffecients, condition number and
+%computation time for deriving coeffecients given basis functions,
+%reference points and data for RBF Interpolant
+
 %Check Dimensions 
 %Data
 [npoints,dim]=size(Data.x);

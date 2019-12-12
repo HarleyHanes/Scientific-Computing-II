@@ -1,4 +1,6 @@
 function [x,success] = LUSolve(A,b)
+%LUSolve Solves a linear system via LU Decomposition and foward/backward
+%substitution
 sizecheck=size(A);
 if sizecheck(1)~=sizecheck(2)
     fprintf("Error!! Entered matrix is not square")

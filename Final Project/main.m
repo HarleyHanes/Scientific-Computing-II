@@ -1,7 +1,5 @@
 %Main script for final project on RBFs
 clc; clear; close all;
-    %BasisFunc outputs a row vector with the f(x) values at x for each xi
-    
 %% Simulated Data
     %Data generation
         %We will test our RBF methods on data Halton Data Sets described in RBF.pdf
@@ -9,6 +7,9 @@ clc; clear; close all;
         dim=[0, 0; 1 1];
         numpoints=500;
         Data=GenerateHalton(f,dim,numpoints);
+        plot(Data.x(:,1),Data.x(:,2),'*','MarkerFaceColor','b')
+        hold on
+        plot(Data.x(48:72,1),Data.x(48:72,2),'o','MarkerSize',10,'MarkerFaceColor','r')
     
     %% Simulation 1- Stability of Interpolations
         %Test Stability of no Regularization vs Regularization at different
@@ -106,10 +107,8 @@ clc; clear; close all;
         plot(numRef,maxErr)
         xlabel('Number of Reference Points')
         ylabel('Max Error')
-        
-        keyboard
-%%Simulation 3: Error Comparison
-   
+     
+%% Simulation 3: Error Comparison
         clear; clc;
         gridpoints=[100 100];
         f=@(x,y)sinc(pi.*x).*sinc(pi.*y);
@@ -127,77 +126,54 @@ clc; clear; close all;
 
         xiApprox=[0 0 1 1 Data.x(end-numRef:end,1)';
           1 0 1 0 Data.x(end-numRef:end,2)'];
+         %Get Interp Err
+         [betaPlanarInterp,~,tcost]=SolveRBFPlanarInterp(Data,basisFuncInterp,1);
+         FPlanarInterp=@(x)dot([basisFuncInterp(x,Data.x') x 1],betaPlanarInterp);
+         ErrInterp=EstimateError(gridpoints,dim,f,FPlanarInterp,'all');
       
-      
-%         numRef=.1*numpoints;
-%         %Get Reference Points
-%         xiApprox=[0 0 1 1 Data.x(end-numRef:end,1)';
-%                   1 0 1 0 Data.x(end-numRef:end,2)'];
-%         %Plot Data and reference points
-%         figure
-%         plot(Data.x(:,1),Data.x(:,2),'*','MarkerSize',.2)
-%         hold on
-%         plot(xiApprox(1,:),xiApprox(2,:),'rs','MarkerSize',3)
-%         legend('Halton Sample Points','RBF Reference Points')
-%         title('Sample and Reference Points for 89 Halton Points with Corners')
-% 
-%         %Get Interp planar coeffecients
-%         [betaPlanarInterp,~,tcost]=SolveRBFPlanarInterp(Data,basisFunc,0);
-% 
-%         %Get Approx coeffecients
-%         betaApprox=SolveRBFApprox(Data,xiApprox,basisFunc);
-% 
-%         %Get Approx with Plane coeffecients 
-%         betaPlanarApprox=SolveRBFPlanarApprox(Data,xiApprox,basisFunc);
-% 
-%         FPlanarInterp=@(x)dot([basisFunc(x,Data.x') x 1],betaPlanarInterp);
-% 
-%         FApprox=@(x)dot(basisFunc(x,xiApprox),betaApprox);
-% 
-%         FPlanarApprox=@(x)dot([basisFunc(x,xiApprox) x 1],betaPlanarApprox);
-% 
-% 
-%         %Test on Rectinilar Grid
-%         gridpoints=100;
-%         x=linspace(dim(1,1),dim(2,1),gridpoints);
-%         y=linspace(dim(1,2),dim(2,2),gridpoints);
-%         fMesh=NaN(gridpoints);
-%         InterpPlanarMesh=NaN(gridpoints);
-%         ApproxMesh=NaN(gridpoints);
-%         ApproxPlanarMesh=NaN(gridpoints);
-%         for i=1:gridpoints
-%             for j=1:gridpoints
-%                 fMesh(i,j)=f(x(i),y(j));
-%                 InterpPlanarMesh(i,j)=FPlanarInterp([x(i) y(j)]);
-%                 ApproxMesh(i,j)=FApprox([x(i) y(j)]);
-%                 ApproxPlanarMesh(i,j)=FPlanarApprox([x(i) y(j)]);
-%             end
-%         end
-%         %Compute Error
-%         ErrApprox=sum(sum(sqrt((ApproxMesh-fMesh).^2)))/(gridpoints^2);
-%         ErrPlanarApprox=sum(sum(sqrt((ApproxPlanarMesh-fMesh).^2)))/(gridpoints^2);
-% 
-%         figure
-%         mesh(x,y,InterpPlanarMesh)
-% 
-%         figure
-%         mesh(x,y,fMesh)
-%         title('$f(x)=sinc(\pi x)*sinc(\pi y)$','Interpreter','LaTex')
-% 
-%         figure
-%         mesh(x,y,ApproxMesh)
-%         titleApprox=sprintf('RBF Approx., Mean err=%.3e',ErrApprox);
-%         title(titleApprox)
-% 
-%         figure
-%         mesh(x,y,ApproxPlanarMesh)
-%         titlePlanarApprox=sprintf('RBF Planar Approx., Mean err=%.3e',ErrPlanarApprox);
-%         title(titlePlanarApprox)
-% 
-%         %Asses Sample Point effect 
-% 
-%         clear ErrApprox ErrPlanarApprox betaApprox betaPlanarApprox xiApprox;
-%         keyboard
+         %Get Approx with Plane coeffecients 
+         betaPlanarApprox=SolveRBFPlanarApprox(Data,xiApprox,basisFuncApprox);
+         FPlanarApprox=@(x)dot([basisFuncApprox(x,xiApprox) x 1],betaPlanarApprox);
+         ErrApprox=EstimateError(gridpoints,dim,f,FPlanarApprox,'all');
+         
+         %Make Histograms
+         figure
+         histogram(ErrInterp/length(ErrInterp))
+         xlabel('Interpolation Estimate Error')
+         
+         figure
+         histogram(ErrApprox/length(ErrApprox))
+         xlabel('Approximation Estimate Error')
+         
+         %Plot Curves
+        gridpoints=100;
+        x=linspace(dim(1,1),dim(2,1),gridpoints);
+        y=linspace(dim(1,2),dim(2,2),gridpoints);
+        fMesh=NaN(gridpoints);
+        InterpPlanarMesh=NaN(gridpoints);
+        ApproxMesh=NaN(gridpoints);
+        ApproxPlanarMesh=NaN(gridpoints);
+        for i=1:gridpoints
+            for j=1:gridpoints
+                fMesh(i,j)=f(x(i),y(j));
+                InterpPlanarMesh(i,j)=FPlanarInterp([x(i) y(j)]);
+                ApproxPlanarMesh(i,j)=FPlanarApprox([x(i) y(j)]);
+            end
+        end
+figure
+mesh(x,y,fMesh)
+title('$f(x)=sinc(\pi x)*since(\pi y)$','Interpreter','Latex')
+
+figure
+mesh(x,y,InterpPlanarMesh)
+title('RBF Interpolation')
+
+figure
+mesh(x,y,ApproxPlanarMesh)
+title('RBF Approximation')
+        
+        
+        
 %%
 
 %Set Number of reference points
@@ -223,7 +199,7 @@ for iRef=1:length(numRef)
       
     %Get Approx coeffecients
 
-    [betaApprox,condApprox(iRef)]=SolveRBFApprox(Data,xiApprox,basisFunc);
+    [betaApprox,condApprox(iRef)]=SolveRBFApprox(Data,xiApprox,basisFuncApprox);
 
     %Get Approx with Plane coeffecients 
   
@@ -292,41 +268,25 @@ xlabel('# Reference Points')
 
 %% Test 2: Image reconstructon
 clc;clear;
-alpha=.01;
+alpha=5;
 basisFunc=@(x,xi)exp(-(alpha.*sqrt(sum((x'-xi).^2))).^2);
 %LoadImage
 ImageTrue=im2double(rgb2gray(imread('../../StreetCar.jpg')));
-subplot(1,3,1)
+figure
 imshow(ImageTrue)
-title('True Image')
 
 imagDim=size(ImageTrue);
 
 %DistortImage
 %1)Add Noise
-ImageNoisy=ImageTrue+(rand(size(ImageTrue))-.5)*mean(mean(ImageTrue)/1.5);
-subplot(1,3,2)
+ImageNoisy=ImageTrue+(rand(size(ImageTrue))-.5)*mean(mean(ImageTrue)*5);
+figure
 imshow(ImageNoisy)
-title('Image with Noise')
 
-%2)AddCreases
-ImageCreased=ImageTrue;
-for i=100:100:size(ImageTrue,1)-100
-    ImageCreased(i-5:i+5,:)=ones(11,size(ImageTrue,2));
-end
-for j=100:100:size(ImageTrue,2)-100
-    ImageCreased(:,i-5:i+5)=ones(size(ImageTrue,1),11);
-end
-subplot(1,3,3)
-imshow(ImageCreased)
-title('Image with Creases')
 
 ImageData=ImageToData(ImageTrue);
 
-%Generate Reference Points
-% NumRef=100;
-% DimRatio=imagDim(1)/imagDim(2);
-numXxi=90;numYxi=70;
+numXxi=70;numYxi=45;
 xix=round(linspace(1,imagDim(1),numXxi+2));
 xiy=round(linspace(1,imagDim(2),numYxi+2));
 xix=xix(2:end-1);xiy=xiy(2:end-1);
@@ -337,73 +297,30 @@ for i=1:length(xix)
 end
 
 %Translate Images to Data struct
-% RawDataTrue=ImageToData(ImageTrue);
-% RawDataNoisy=ImageToData(ImageNoisy);
-% RawDataCreased=ImageToData(ImageCreased);
 
 %Create Halton points
-pointstep=5;
+pointstep=1;
 PointIndices=1:pointstep:imagDim(1)*imagDim(2);
 for i=1:length(PointIndices)
     DataTrue.x(i,:)=ImageData.x(PointIndices(i),:);
 end
-% p=haltonset(2);
-% DataTrue.x=ceil(net(p,numpoints).*imagDim);
-% DataTrue.x(1,:)=[];
 DataNoisy.x=DataTrue.x;
-DataCreased.x=DataTrue.x;
-
-DataTrue=ExtractData(DataTrue,ImageTrue);
 DataNoisy=ExtractData(DataNoisy,ImageNoisy);
-DataCreased=ExtractData(DataCreased,ImageCreased);
+%DataCreased=ExtractData(DataCreased,ImageCreased);
 
-%True Fitting
-    %Get Approx coeffecients
-    %betaTrueApprox=SolveRBFApprox(DataTrue,xiImage,basisFunc);
-    %Get Approx with Plane coeffecients 
-    betaTruePlanarApprox=SolveRBFPlanarApprox(DataTrue,xiImage,basisFunc);
-
-%Noisy Fitting
-    %Get Approx coeffecients
-    %betaNoisyApprox=SolveRBFApprox(DataNoisy,xiImage,basisFunc);
-    %Get Approx with Plane coeffecients 
     %betaNoisyPlanarApprox=SolveRBFPlanarApprox(DataNoisy,xiImage,basisFunc);
+    betaNoisyPlanarInterp=SolveRBFPlanarInterp(DataNoisy,basisFunc,1);
 
-%Creased Fitting
-    %Get Approx coeffecients
-    %betaCreasedApprox=SolveRBFApprox(DataCreased,xiImage,basisFunc);
-    %Get Approx with Plane coeffecients 
-   % betaCreasedPlanarApprox=SolveRBFPlanarApprox(DataCreased,xiImage,basisFunc);
+FNoisyPlanarInterp=@(x)dot([basisFuncInterp(x,Data.x') x 1],betaNoisyPlanarApprox);
 
-
-
-FTrueApprox=@(x)dot(basisFunc(x,xiImage),betaTrueApprox);
-FTruePlanarApprox=@(x)dot([basisFunc(x,xiImage) x 1],betaTruePlanarApprox);
-
-FNoisyApprox=@(x)dot(basisFunc(x,xiImage),betaNoisyApprox);
-FNoisyPlanarApprox=@(x)dot([basisFunc(x,xiImage) x 1],betaNoisyPlanarApprox);
-
-FCreasedApprox=@(x)dot(basisFunc(x,xiImage),betaCreasedApprox);
-FCreasedPlanarApprox=@(x)dot([basisFunc(x,xiImage) x 1],betaCreasedPlanarApprox);
-
-DataTrueApprox=ImageData;
-DataTruePlanarApprox=ImageData;
 
 for i=1:length(ImageData.x)
-    %DataTrueApprox.y(i)=FTrueApprox(ImageData.x(i,:));
-    DataTruePlanarApprox.y(i)=FTruePlanarApprox(ImageData.x(i,:));
+    DataNoisyPlanarApprox.y(i)=FNoisyPlanarInterp(ImageData.x(i,:));
 end
+DataNoisyPlanarApprox.x=ImageData.x;
     
-%TrueApprox=DataToImage(DataTrueApprox);
-TruePlanarApprox=DataToImage(DataTruePlanarApprox);
-% figure
-% imshow(TrueApprox)
+NoisyPlanarApprox=DataToImage(DataNoisyPlanarApprox);
+
 figure
-imshow(TruePlanarApprox)
-% 
-% DataCreasedApprox=FCreasedApprox(ImageData.x);
-% DataCreasedPlanarApprox=FCreasedApprox(ImageData.x);
-% 
-% DataNoisyApprox=FNoisyApprox(ImageData.x);
-% DataNoisyPlanarApprox=FNoisyApprox(ImageData.x);
+imshow(NoisyPlanarApprox);
 

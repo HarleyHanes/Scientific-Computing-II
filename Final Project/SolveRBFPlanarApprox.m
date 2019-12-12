@@ -1,7 +1,7 @@
 function [beta,cond,Tcost,success] = SolveRBFPlanarApprox(Data,xi,basisFunc)
-%UNTITLED11 Summary of this function goes here
-%   Detailed explanation goes here
-%Check Dimensions 
+%SolveRBFPlanarApprox Outputs the coeffecients, condition number and
+%computation time for deriving coeffecients given basis functions,
+%reference points and data
 %Data
 [npoints,dim]=size(Data.x);
 [~,NumRef]=size(xi);

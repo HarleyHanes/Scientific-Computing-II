@@ -1,6 +1,6 @@
 function [Err] = EstimateError(numpoints,dim,f,RBF,metric)
-%UNTITLED5 Summary of this function goes here
-%   Detailed explanation goes here
+%EstimateError Solves for a number of error metrics for the synthetic
+%simulations
 x=linspace(dim(1,1),dim(2,1),numpoints(1));
 y=linspace(dim(1,2),dim(2,2),numpoints(2));
 fMesh=NaN(numpoints);
@@ -13,9 +13,11 @@ for i=1:numpoints(1)
 end
 switch metric
     case 'Max'
-        Err=max(max(fMesh-RBFMesh));
+        Err=max(max(abs(fMesh-RBFMesh)));
     case 'Mean'
-        Err=mean(mean(fMesh-RBFMesh));
+        Err=mean(mean(abs(fMesh-RBFMesh)));
+    case 'all'
+        Err=reshape(abs(fMesh-RBFMesh),1,numpoints(1)*numpoints(2));
 end
 end
 
